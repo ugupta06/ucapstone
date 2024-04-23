@@ -1,41 +1,62 @@
-// Define a function to handle button presses for numbers and operators
-function press(value) {
+// Ensure that the DOM is fully loaded before attaching event handlers
+document.addEventListener('DOMContentLoaded', function () {
+    let currentOperation = null;
+    let storedInput = '';
+
     const display = document.getElementById('display');
-    if (display.value.includes('.') && value === '.' && display.value.split(/[\+\-\*\/]/).pop().includes('.')) {
-        // Prevent multiple dots in a single number
-        return;
-    }
-    if (display.value === '0' && value !== '.') {
-        display.value = value; // Replace initial '0' except for decimal cases
-    } else {
-        display.value += value; // Append the button value to the display
-    }
-}
 
-// Function to clear the display
-function clearDisplay() {
-    document.getElementById('display').value = '';
-}
+    window.append = function(number) {
+        display.value += number;
+    };
 
-// Function to evaluate the expression and handle errors
-function calculate() {
-    const display = document.getElementById('display');
-    try {
-        display.value = eval(display.value); // Evaluate the expression in the display
-        if (display.value === "Infinity" || display.value === "-Infinity" || isNaN(display.value)) {
-            throw new Error('Invalid Operation'); // Handle division by zero or invalid results
+    window.setOperation = function(operator) {
+        if (currentOperation !== null) {
+            calculate(); // Calculate any pending operations first
         }
-    } catch (error) {
-        display.value = 'Error'; // Display error on any illegal operation
-        setTimeout(clearDisplay, 2000); // Clear the display after 2 seconds
-    }
-}
+        storedInput = display.value; // Store current value for the operation
+        currentOperation = operator;
+        display.value = ''; // Clear display for new input
+    };
 
-// Overwrite the `press` function if '=' is pressed to calculate the result
-document.querySelectorAll('.keys button').forEach(button => {
-    button.addEventListener('click', function() {
-        if (this.textContent === '=') {
-            calculate();
+    window.calculate = function() {
+        let result;
+        const current = parseFloat(display.value);
+        const stored = parseFloat(storedInput);
+        
+        if (isNaN(stored) || isNaN(current)) {
+            alert("Invalid input!");
+            return;
         }
-    });
+        
+        switch(currentOperation) {
+            case '+':
+                result = stored + current;
+                break;
+            case '-':
+                result = stored - current;
+                break;
+            case '*':
+                result = stored * current;
+                break;
+            case '/':
+                if (current === 0) {
+                    alert("Division by zero is not allowed.");
+                    return;
+                }
+                result = stored / current;
+                break;
+            default:
+                return; // Exit if the operation is undefined
+        }
+
+        display.value = result;
+        currentOperation = null; // Reset operation
+        storedInput = ''; // Reset stored input
+    };
+
+    window.clearDisplay = function() {
+        display.value = '';
+        currentOperation = null;
+        storedInput = '';
+    };
 });
