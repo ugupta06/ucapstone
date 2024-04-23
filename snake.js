@@ -1,118 +1,143 @@
-const gameArea = document.getElementById('gameArea');
-const context = gameArea.getContext('2d');
-const grid = 20; // this sets the size of the grid cells
-let speed = 7;
+// snake.js
+const canvas = document.getElementById('gameArea');
+const ctx = canvas.getContext('2d');
 
-let snake = [{ x: 160, y: 160 }, { x: 140, y: 160 }, { x: 120, y: 160 }];
-let dx = grid; // horizontal movement
-let dy = 0; // vertical movement
-let food = { x: 0, y: 0 };
-let score = 0;
+const scale = 20; // Size of the snake and food
+const rows = canvas.height / scale;
+const columns = canvas.width / scale;
 
-const getRandomFoodPosition = () => {
-    let x = Math.floor(Math.random() * (gameArea.width / grid)) * grid;
-    let y = Math.floor(Math.random() * (gameArea.height / grid)) * grid;
-    // Check if the random position is not where the snake currently is
-    if (snake.some(segment => segment.x === x && segment.y === y)) {
-        return getRandomFoodPosition();
-    }
-    return { x, y };
-};
+let snake;
 
-const drawFood = () => {
-    context.fillStyle = 'red';
-    context.fillRect(food.x, food.y, grid, grid);
-};
+(function setup() {
+    snake = new Snake();
+    food = new Food();
+    food.pickLocation();
 
-const drawSnake = () => {
-    context.fillStyle = 'green';
-    snake.forEach(segment => {
-        context.fillRect(segment.x, segment.y, grid, grid);
-    });
-};
+    window.setInterval(() => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        food.draw();
+        snake.update();
+        snake.draw();
 
-const moveSnake = () => {
-    const head = { x: snake[0].x + dx, y: snake[0].y + dy };
-    snake.unshift(head);
+        if (snake.eat(food)) {
+            food.pickLocation();
+        }
 
-    // Check if snake has eaten the food
-    if (snake[0].x === food.x && snake[0].y === food.y) {
-        score += 10;
-        food = getRandomFoodPosition();
-    } else {
-        snake.pop();
-    }
-};
+        snake.checkCollision();
+        document.querySelector('h1').innerText = 'Snake Game - Score: ' + snake.total;
+    }, 250); // Control the speed of the snake
+}());
 
-const changeDirection = (event) => {
-    const keyPressed = event.keyCode;
-    const LEFT = 37;
-    const RIGHT = 39;
-    const UP = 38;
-    const DOWN = 40;
+function Snake() {
+    this.x = 0;
+    this.y = 0;
+    this.xSpeed = scale * 1;
+    this.ySpeed = 0;
+    this.total = 0;
+    this.tail = [];
 
-    switch (keyPressed) {
-        case LEFT:
-            if (dx === 0) {
-                dx = -grid;
-                dy = 0;
-            }
-            break;
-        case UP:
-            if (dy === 0) {
-                dx = 0;
-                dy = -grid;
-            }
-            break;
-        case RIGHT:
-            if (dx === 0) {
-                dx = grid;
-                dy = 0;
-            }
-            break;
-        case DOWN:
-            if (dy === 0) {
-                dx = 0;
-                dy = grid;
-            }
-            break;
-    }
-};
+    this.draw = function() {
+        ctx.fillStyle = "#FFFFFF";
 
-const checkGameOver = () => {
-    for (let i = 4; i < snake.length; i++) {
-        if (snake[i].x === snake[0].x && snake[i].y === snake[0].y) {
+        for (let i = 0; i < this.tail.length; i++) {
+            ctx.fillRect(this.tail[i].x, this.tail[i].y, scale, scale);
+        }
+
+        ctx.fillRect(this.x, this.y, scale, scale);
+    };
+
+    this.update = function() {
+        for (let i = 0; i < this.tail.length - 1; i++) {
+            this.tail[i] = this.tail[i + 1];
+        }
+
+        this.tail[this.total - 1] = { x: this.x, y: this.y };
+
+        this.x += this.xSpeed;
+        this.y += this.ySpeed;
+
+        // Prevent snake from moving outside the canvas
+        if (this.x > canvas.width) {
+            this.x = 0;
+        }
+
+        if (this.y > canvas.height) {
+            this.y = 0;
+        }
+
+        if (this.x < 0) {
+            this.x = canvas.width - scale;
+        }
+
+        if (this.y < 0) {
+            this.y = canvas.height - scale;
+        }
+    };
+
+    this.changeDirection = function(direction) {
+        switch(direction) {
+            case 'Up':
+                if (this.ySpeed === 0) {
+                    this.xSpeed = 0;
+                    this.ySpeed = -scale * 1;
+                }
+                break;
+            case 'Down':
+                if (this.ySpeed === 0) {
+                    this.xSpeed = 0;
+                    this.ySpeed = scale * 1;
+                }
+                break;
+            case 'Left':
+                if (this.xSpeed === 0) {
+                    this.xSpeed = -scale * 1;
+                    this.ySpeed = 0;
+                }
+                break;
+            case 'Right':
+                if (this.xSpeed === 0) {
+                    this.xSpeed = scale * 1;
+                    this.ySpeed = 0;
+                }
+                break;
+        }
+    };
+
+    this.eat = function(food) {
+        if (this.x === food.x && this.y === food.y) {
+            this.total++;
             return true;
         }
-    }
 
-    const hitLeftWall = snake[0].x < 0;
-    const hitRightWall = snake[0].x > gameArea.width - grid;
-    const hitTopWall = snake[0].y < 0;
-    const hitBottomWall = snake[0].y > gameArea.height - grid;
+        return false;
+    };
 
-    return hitLeftWall || hitRightWall || hitTopWall || hitBottomWall;
-};
+    this.checkCollision = function() {
+        for (let i = 0; i < this.tail.length; i++) {
+            if (this.x === this.tail[i].x && this.y === this.tail[i].y) {
+                this.total = 0;
+                this.tail = [];
+            }
+        }
+    };
+}
 
-const clearCanvas = () => {
-    context.clearRect(0, 0, gameArea.width, gameArea.height);
-};
+function Food() {
+    this.x;
+    this.y;
 
-const gameLoop = () => {
-    if (checkGameOver()) {
-        alert('Game over');
-        document.location.reload();
-        return;
-    }
+    this.pickLocation = function() {
+        this.x = (Math.floor(Math.random() * columns - 1) + 1) * scale;
+        this.y = (Math.floor(Math.random() * rows - 1) + 1) * scale;
+    };
 
-    clearCanvas();
-    drawFood();
-    moveSnake();
-    drawSnake();
+    this.draw = function() {
+        ctx.fillStyle = "#FF0000";
+        ctx.fillRect(this.x, this.y, scale, scale);
+    };
+}
 
-    setTimeout(gameLoop, 1000 / speed);
-};
-
-document.addEventListener('keydown', changeDirection);
-food = getRandomFoodPosition();
-gameLoop();
+window.addEventListener('keydown', (evt) => {
+    const direction = evt.key.replace('Arrow', '');
+    snake.changeDirection(direction);
+});
