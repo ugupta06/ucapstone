@@ -39,4 +39,3 @@ document.querySelectorAll('.keys button').forEach(button => {
         }
     });
 });
-
