@@ -1,61 +1,42 @@
-// calculator.js
-let currentInput = '';
-let previousInput = '';
-let operation = null;
-
-const resultDisplay = document.getElementById('result');
-
-function appendNumber(number) {
-    if (resultDisplay.value.includes('.') && number === '.') return; // Prevent multiple dots
-    resultDisplay.value = resultDisplay.value.toString() + number.toString();
-}
-
-function setOperator(operator) {
-    if (resultDisplay.value === '') return;
-    if (previousInput !== '') {
-        calculate();
+// Define a function to handle button presses for numbers and operators
+function press(value) {
+    const display = document.getElementById('display');
+    if (display.value.includes('.') && value === '.' && display.value.split(/[\+\-\*\/]/).pop().includes('.')) {
+        // Prevent multiple dots in a single number
+        return;
     }
-    operation = operator;
-    previousInput = resultDisplay.value;
-    currentInput = '';
-    resultDisplay.value = '';
+    if (display.value === '0' && value !== '.') {
+        display.value = value; // Replace initial '0' except for decimal cases
+    } else {
+        display.value += value; // Append the button value to the display
+    }
 }
 
+// Function to clear the display
+function clearDisplay() {
+    document.getElementById('display').value = '';
+}
+
+// Function to evaluate the expression and handle errors
 function calculate() {
-    currentInput = resultDisplay.value;
-    let computation;
-    const prev = parseFloat(previousInput);
-    const current = parseFloat(currentInput);
-    if (isNaN(prev) || isNaN(current)) return;
-
-    switch (operation) {
-        case '+':
-            computation = prev + current;
-            break;
-        case '-':
-            computation = prev - current;
-            break;
-        case '*':
-            computation = prev * current;
-            break;
-        case '/':
-            if (current === 0) {
-                alert("Division by zero is undefined.");
-                return;
-            }
-            computation = prev / current;
-            break;
-        default:
-            return;
+    const display = document.getElementById('display');
+    try {
+        display.value = eval(display.value); // Evaluate the expression in the display
+        if (display.value === "Infinity" || display.value === "-Infinity" || isNaN(display.value)) {
+            throw new Error('Invalid Operation'); // Handle division by zero or invalid results
+        }
+    } catch (error) {
+        display.value = 'Error'; // Display error on any illegal operation
+        setTimeout(clearDisplay, 2000); // Clear the display after 2 seconds
     }
-    resultDisplay.value = computation;
-    operation = undefined;
-    previousInput = '';
 }
 
-function clearResult() {
-    resultDisplay.value = '';
-    currentInput = '';
-    previousInput = '';
-    operation = null;
-}
+// Overwrite the `press` function if '=' is pressed to calculate the result
+document.querySelectorAll('.keys button').forEach(button => {
+    button.addEventListener('click', function() {
+        if (this.textContent === '=') {
+            calculate();
+        }
+    });
+});
+
