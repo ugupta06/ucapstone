@@ -29,7 +29,7 @@ body {
 }
 
 .keys button {
-    width: 23%; /* Equal width for all buttons */
+    width: 20%; /* Equal width for all buttons */
     padding: 10px 0;
     margin: 5px 1%;
     background-color: #ff0000; /* Red color for buttons */
