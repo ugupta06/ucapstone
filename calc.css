@@ -14,12 +14,13 @@ body {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Subtle shadow for depth */
+    width: 320px; /* Fixed width for the calculator */
 }
 
 #display {
     width: 100%;
     padding: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 20px; /* Increase margin for visual separation */
     background-color: #222; /* Even darker shade for contrast */
     color: #fff; /* White text */
     border: none;
@@ -28,10 +29,14 @@ body {
     border-radius: 4px;
 }
 
+.keys {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* Create four columns */
+    gap: 10px; /* Space between buttons */
+}
+
 .keys button {
-    width: calc(20% - 10px); /* Adjust width to account for margins */
-    padding: 10px 0;
-    margin: 5px 1%; /* Keep small margin */
+    padding: 15px 0; /* Uniform padding */
     background-color: #ff0000; /* Red color for buttons */
     color: white;
     border: none;
