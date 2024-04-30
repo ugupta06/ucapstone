@@ -5,7 +5,7 @@ body {
     align-items: center;
     height: 100vh;
     margin: 0;
-    background-color: #171717; /* Dark background for sleek look */
+    background-color: #171717; /* Dark background for a sleek look */
     font-family: 'Arial', sans-serif;
 }
 
@@ -29,9 +29,9 @@ body {
 }
 
 .keys button {
-    width: 20%; /* Equal width for all buttons */
+    width: calc(20% - 10px); /* Adjust width to account for margins */
     padding: 10px 0;
-    margin: 5px 1%;
+    margin: 5px 1%; /* Keep small margin */
     background-color: #ff0000; /* Red color for buttons */
     color: white;
     border: none;
